@@ -1,2 +1,2 @@
 # RF_QRC
-Implementation of classical, quantum and recurrence-free quantum reservoir computing for predicting chaotic dynamics
+Recurrence-free quantum reservoir computing implementation along with standard classical and quantum reservoir approaches - to predict chaotic dynamics
