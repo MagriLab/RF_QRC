@@ -108,14 +108,6 @@ pytz==2023.2
 PyYAML==6.0
 pyzmq==25.0.2
 qiskit==1.0.0rc1
-qiskit-aer==0.12.0
-qiskit-aer-gpu==0.11.2
-qiskit-experiments==0.6.0
-qiskit-ibm-experiment==0.4.7
-qiskit-ibm-runtime==0.10.0
-qiskit-ibmq-provider==0.20.2
-qiskit-ignis==0.7.1
-qiskit-terra==0.46.0
 requests==2.32.3
 requests-ntlm==1.1.0
 retworkx==0.14.0
