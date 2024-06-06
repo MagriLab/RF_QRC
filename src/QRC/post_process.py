@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 import matplotlib as mpl
 import numpy as np
-import math
+
 
 def add_noise(U,target_snr_db,seed,dim,N0,N1):
     """_summary_
