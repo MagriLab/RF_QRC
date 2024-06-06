@@ -6,6 +6,7 @@ repos:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
+  # Linter
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.4.7
     hooks:
@@ -14,7 +15,9 @@ repos:
         # entry: ruff ./src
         # language: system
 
-  - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.315
-    hooks:
-      - id: pyright
+  # using pylance in vs code
+  # Type checker
+  # - repo: https://github.com/RobertCraigie/pyright-python
+  #   rev: v1.1.315
+  #   hooks:
+  #     - id: pyright
