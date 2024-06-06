@@ -8,7 +8,10 @@ from qiskit.circuit import ParameterVector
 import warnings
 
 class QuantumReservoirNetwork:
-    def __init__(self,tikh_q,epsilon_q,bias_in,bias_out,qubits,N_units,dim,config,emulator,shots,snapshots):
+    def __init__(self,rho_q,epsilon_q,sigma_in_q,tikh_q,bias_in,bias_out,qubits,N_units,dim,config,emulator,shots,snapshots):
+        self.rho_q      = rho_q
+        self.epsilon_q  = epsilon_q
+        self.sigma_in_q = sigma_in_q
         self.tikh_q     = tikh_q
         self.epsilon_q  = epsilon_q
         self.bias_in    = bias_in
@@ -23,10 +26,14 @@ class QuantumReservoirNetwork:
         self.alpha      = None
         self.param_qc   = None
 
-    # can or cannot use property here, it provides encapsulation
-    # @property
-    # def tikh(self):
-    #     return(self._tikh)
+
+    @property
+    def rho_q(self):
+        return (self._rho_q)
+
+    @rho_q.setter
+    def rho_q (self,value):
+        self._rho_q = value
 
     @property
     def tikh_q(self):
@@ -457,32 +464,6 @@ class QuantumReservoirNetwork:
         Xa_dn = Xa_dn.T # reshaping back for training
 
         return Xa , Xa_dn
-
-    # TODO
-    # def quantum_closedloop_denoised(self,N,x0,Wout_q,alpha,freq,poly):
-    #     """Advances Quantum Circ in Closed Loop
-    #     Args:
-    #         N : Number of Time Steps
-    #         x0 : Initial Reservoir State
-    #         Wout_q : Output Matrix
-
-    #     Returns:
-    #         Yh: Time Series of Prediction
-    #         Xa: Final Augmented Reservoir State
-    #     """
-    #     xa    = x0.copy()
-    #     xa_dn = x0.copy()
-    #     Yh    = np.empty((N+1, self.dim))
-    #     Yh[0] = np.dot(xa, Wout_q)
-    #     for i in np.arange(1,N+1):
-    #         xa    =  self.quantum_step(xa[:self.N_units], Yh[i-1],alpha)
-    #         Yh[i] =  np.dot(xa, Wout_q) #np.linalg.multi_dot([xa, Wout_q])
-    #         if i % freq == 0:
-    #             for l in range():
-    #                 xa_dn[l]   = savgol_filter(xx[l], freq, poly)
-
-    #     return Yh, xa
-
 
     def quantum_training_denoised(self,U_washout, U_train, Y_train,alpha,freq,poly):
         """ Trains QESN.
