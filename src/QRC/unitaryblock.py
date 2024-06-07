@@ -216,13 +216,9 @@ def Unitary_FullyEnt(n,X,qc,name='param'):
     # qc.barrier()
 
     for j , param in enumerate(X):
-        if j > n:
+        if j >= n:
             i = j % n
             qc.ry(param,i,label=f'$R_Y$({name})')
-
-    # qc.barrier()
-
-    # ADD ONE MORE ALL TO ALL LAYER? only for j > n
 
     return qc
 
