@@ -1,10 +1,12 @@
 
 import numpy as np
-from qiskit import  QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import  QuantumCircuit, QuantumRegister, ClassicalRegister , transpile , qpy
 from qiskit_aer import Aer
 from scipy.signal import savgol_filter
 from QRC.unitaryblock import Unitary4 , Unitary_FullyEnt , Unitary_FullyEntSym , Unitary_Feature
 from qiskit.circuit import ParameterVector
+from qiskit_ibm_runtime.fake_provider import FakeBrisbane , FakeKyoto
+from qiskit_aer import AerSimulator
 import warnings
 
 class QuantumReservoirNetwork:
@@ -25,6 +27,8 @@ class QuantumReservoirNetwork:
         self.snapshots  = snapshots
         self.alpha      = None
         self.param_qc   = None
+        self.transpiled_qc = None
+        self.transpiled_warn = None
 
 
     @property
@@ -184,20 +188,47 @@ class QuantumReservoirNetwork:
 
         return self.param_qc
 
+    def transpile_param_quantumcircuit(self,trys,fake_backend,save=False):
+        self.gen_param_quantumcircuit() # will create a parameterized quantum circuit
+        backend = fake_backend
+        t_depth = []
+        tr_qc = []
+
+        print('Transpiling for backend, with trials, ',trys)
+        for ll in range(trys):
+            t_qc = transpile(self.param_qc, backend,optimization_level=3)
+            tr_qc.append(t_qc)
+            t_depth.append(tr_qc[ll].depth())
+            print('Original depth:', self.param_qc.depth(), 'Decomposed Depth:', tr_qc[ll].depth())
+            # print(f"CNOTs: ",'Original: ',self.param_qc.count_ops(), 'Transpiled: ', tr_qc[ll].count_ops())
+
+        print('Minimum Depth:', np.min(t_depth) , ', Index of minimum depth:' , np.argmin(t_depth) , ', Original info:' ,self.param_qc.count_ops(), ', Transpiled info:',tr_qc[np.argmin(t_depth)].count_ops())
+
+        self.transpiled_qc = tr_qc[np.argmin(t_depth)]
+
+        if save:
+            print('Saving transpiled circuit as, transpiled', str(backend))
+            with open("qc_transpiled_{}_MFE.qpy".format('ibm_kyoto'), "wb") as qpy_file_write:
+                qpy.dump(self.transpiled_qc, qpy_file_write)
+
+        return self.transpiled_qc
+
+
     def load_quantumcircuit(self,prob_p,x_in,alpha):
-
-        # if alpha is not None:
-        #     pass
-        # else:
-        #     raise AttributeError("Random unitary is not defined")
-
         if self.param_qc is not None:
             pass
         else:
             self.gen_param_quantumcircuit()
             warnings.warn("Parameterized circuit not found, generating...")
 
-        qc = self.param_qc
+        if self.transpiled_qc is not None:
+            qc = self.transpiled_qc
+
+            if self.transpiled_warn is None: # To show only once
+                warnings.warn('Using a user transpiled circuit, please check backend requirements')
+                self.transpiled_warn = str(0)
+        else:
+            qc = self.param_qc
 
         if self.config == 1 or self.config == 2:
             #print('With recurrency')
@@ -309,8 +340,7 @@ class QuantumReservoirNetwork:
         else:
             self.qc = self.gen_quantumcircuit(prob_p,x_in,alpha)
 
-        if self.emulator   == "sv_sim":
-
+        if self.emulator  == "sv_sim":
             simulator = Aer.get_backend('aer_simulator_statevector')
             #simulator.set_options(device='GPU')
             self.qc.save_statevector()
@@ -318,6 +348,37 @@ class QuantumReservoirNetwork:
             result      = simulator.run(self.qc).result()
             statevector = result.get_statevector(self.qc)
             prob_tilde  = np.abs(np.array(statevector)**2)
+
+        elif self.emulator == "fake_brisbane":
+            self.qc.measure_active()
+
+            # Fake Brisbane
+            backend = FakeBrisbane()
+            simulator = AerSimulator.from_backend(backend)
+
+            # Else same as qasm_simulator
+            simulator = simulator.run(self.qc,shots=self.shots)
+            result    = simulator.result()
+            counts    = result.get_counts(self.qc)
+
+            a=list(np.zeros(self.N_units))
+
+            for ll in range(self.N_units):
+                a[ll]=f'{ll:0{self.qubits}b}'
+
+            # Turning count in terms of probabilities
+            psi_tilde = {}
+            for output in list(a):
+                if output in counts:
+                    psi_tilde[output] = counts[output]/self.shots
+                else:
+                    psi_tilde[output] = 0
+
+            #psi_tilde = dict(sorted(psi_tilde.items())) # sorting dictionary with binary number 0s ---> higher
+
+            psi_tilde = np.array([j for j in psi_tilde.values()]) #Takes values of probabilities from the dictionary
+
+            prob_tilde = (psi_tilde)
 
         elif self.emulator == "qasm_sim":
 
@@ -348,7 +409,7 @@ class QuantumReservoirNetwork:
 
 
         else:
-            raise AttributeError("Please select a valid emulator from the list, (a) sv_sim (b) qasm_sim")
+            raise AttributeError("Please select a valid emulator from the list, (a) sv_sim (b) qasm_sim (c) fake_brisbane")
 
 
         prob_neweps = (1-self.epsilon_q)*prob_p+self.epsilon_q*prob_tilde # including epsilon_q/leaking rate
