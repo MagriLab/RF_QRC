@@ -23,16 +23,17 @@ print(backend)
 with Batch(service=service, backend=backend):
     sampler = Sampler()
     job = sampler.run(
-        circuits=circuit_list_meas[250:380],  ## 3- Update here
+        circuits=circuit_list_meas[630:760],  ## 3- Update here
         skip_transpilation=True,
         shots=10000,
     )
+    print(job.job_id())
     result = job.result()
 
 print('Simulation Finshed')
 
 
-with open("results_qc_ibm_kyoto_MFE_250_380", "wb") as fp:  ## 4- Update here
+with open("results_qc_ibm_kyoto_MFE_630_760", "wb") as fp:  ## 4- Update here
     pickle.dump(result, fp)
 
 
