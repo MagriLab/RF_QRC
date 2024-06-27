@@ -169,3 +169,5 @@ src/Note_check.ipynb
 src/qc_transpiled_decoupled_assigned_ibm_kyoto_MFE
 src/qc_transpiled_decoupled_assigned_meas_ibm_kyoto_MFE
 src/Notebook_hardware.ipynb
+src/QRC/lyapunov_gm.py
+src/QRC/lyapunov.py
