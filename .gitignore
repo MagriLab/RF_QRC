@@ -163,3 +163,31 @@ cython_debug/
 
 
 src/data/*
+src/Note_check.ipynb
+src/Notebook_hardware_.ipynb
+src/qc_transpiled_decoupled_assigned_ibm_kyoto_MFE
+src/qc_transpiled_decoupled_assigned_meas_ibm_kyoto_MFE
+src/qc_transpiled_fakebrisbane.qpy
+src/qc_transpiled_fakekyoto_MFE.qpy
+src/qc_transpiled_fakekyoto.qpy
+src/qc_transpiled_ibm_kyoto_MFE.qpy
+src/results_qc_ibm_kyoto_MFE_0_120
+src/results_qc_ibm_kyoto_MFE_120_250
+src/results_qc_ibm_kyoto_MFE_250_252
+src/results_qc_ibm_kyoto_MFE_250_380
+src/results_qc_ibm_kyoto_MFE_380_382
+src/results_qc_ibm_kyoto_MFE_380_500
+src/results_qc_ibm_kyoto_MFE_500_630
+src/results_qc_ibm_kyoto_MFE_630_760
+src/results_qc_ibm_kyoto_MFE_760_890
+src/results_qc_ibm_kyoto_MFE_890_1020
+src/results_qc_ibm_kyoto_MFE_1020_1150
+src/results_qc_ibm_kyoto_MFE_1150_1280
+src/results_qc_ibm_kyoto_MFE_1280_1410
+src/results_qc_ibm_kyoto_MFE_1410_1540
+src/results_qc_ibm_kyoto_MFE_1540_1670
+src/results_qc_ibm_kyoto_MFE_1670_1800
+src/results_qc_ibm_kyoto_MFE_1800_1930
+src/Script_additionalconfigs.py
+src/QRC/lyapunov_gm.py
+src/QRC/lyapunov.py
