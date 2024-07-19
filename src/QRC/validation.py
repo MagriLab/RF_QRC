@@ -46,7 +46,7 @@ def validate(val,kernell,search_space,n_in,n_tot,esn,tikh,N_fo,N_fw,N_in,N_val,N
 
 def RVC_Noise_upt(esn,tikh,N_fo,N_fw,N_in,N_val,N_washout,U,U_washout,U_tv,Y_tv,Win,W,k,tikh_opt,x):
 
-    print_flag  = True
+    #print_flag  = True
     esn.rho     = round(10**x[0],2)
     esn.epsilon = x[1]
     esn.sigma_in = x[2]
@@ -58,7 +58,7 @@ def RVC_Noise_upt(esn,tikh,N_fo,N_fw,N_in,N_val,N_washout,U,U_washout,U_tv,Y_tv,
     Wout = esn.train(U_washout, U_tv, Y_tv,Win,W)[1]
     #print(Wout.shape)
     #Different Folds in the validation set
-    t1   = time.time()
+    #t1   = time.time()
     for i in range(N_fo):
 
         #select washout and validation
@@ -77,8 +77,8 @@ def RVC_Noise_upt(esn,tikh,N_fo,N_fw,N_in,N_val,N_washout,U,U_washout,U_tv,Y_tv,
             Yh_val   = esn.closed_loop(N_val-1, xf, Wout[j],Win,W)[0]
             Mean[j] += np.log10(np.mean((Y_val-Yh_val)**2))
 
-    if k==0:
-        print('closed-loop time:', time.time() - t1)
+    # if k==0:
+    #     print('closed-loop time:', time.time() - t1)
 
     #select optimal tikh
     a           = np.argmin(Mean)
@@ -86,8 +86,8 @@ def RVC_Noise_upt(esn,tikh,N_fo,N_fw,N_in,N_val,N_washout,U,U_washout,U_tv,Y_tv,
     k          +=1
 
     #print for every set of hyperparameters
-    if print_flag:
-        print(k, ': Spectral radius, Input Scaling, Tikhonov, Leak rate, MSE:',
-              esn.rho, esn.sigma_in, tikh_opt[k-1], esn.epsilon,  Mean[a]/N_fo)
+    # if print_flag:
+    #     print(k, ': Spectral radius, Input Scaling, Tikhonov, Leak rate, MSE:',
+    #           esn.rho, esn.sigma_in, tikh_opt[k-1], esn.epsilon,  Mean[a]/N_fo)
 
     return Mean[a]/N_fo
