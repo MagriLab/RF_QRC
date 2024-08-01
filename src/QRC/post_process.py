@@ -236,20 +236,24 @@ def lorenz63_timeseries_plot(N_test,N_tstart,N_intt,N_fwd,j,UU,U,U_test,N_washou
     return U_wash, Uh_wash, Y_t , Yh_t , PH_plot , Uh_wash_q, Yh_t_q , PH_plot_q
 
 
-def MFE_timeseries_plot(N_test,N_tstart,N_intt,N_fwd,j,UU,U,U_test,N_washout,N_lyap,ensemble,N_t,minimum,esn,Win,W,QESN,Woutt,Woutt_qq,alpha_qq,plot=True,quantum=True):
+def MFE_timeseries_plot(num_series, N_test,N_tstart,N_intt,N_fwd,j,UU,U,U_test,N_washout,N_lyap,ensemble,N_t,minimum,esn,Win,W,QESN,Woutt,Woutt_qq,alpha_qq,plot=True,quantum=True):
 
     # #prediction horizon normalization factor and threshold
-    sigma_ph     = np.sqrt(np.mean(np.var(UU)))
-    threshold_ph = 0.5
-    num_series = 0
-    n_plot = 9
+
+    #prediction horizon normalization factor and threshold
+    k_var = 0.5*np.linalg.norm(U_test[num_series,:,:],axis=1)**2 # kinetic energy of entire time series (for normalization)
+    #sigma_ph = np.sqrt(np.mean(np.var(k_var)))
+    threshold_ph = 0.2
+    n_plot = 20 #20
+    k_mean         = np.mean(k_var)
 
     PH_plot   = np.zeros((ensemble,3))
     PH_plot_q = np.zeros((ensemble,3))
 
+    #tikhonov = len(tikh)
     print(U.shape, UU.shape, N_t)
 
-
+    # for l in range(tikhonov):
     print('Realization    :',j+1)
     #load matrices and hyperparameters
     Wout     = Woutt[j]
@@ -264,94 +268,118 @@ def MFE_timeseries_plot(N_test,N_tstart,N_intt,N_fwd,j,UU,U,U_test,N_washout,N_l
         alpha              = alpha_qq[j]
 
         print('Hyperparameters:',esn.rho, esn.epsilon,esn.sigma_in,esn.tikh)
-        print('Quantum Hyperparameters:', QESN.rho_q, QESN.epsilon_q,QESN.sigma_in_q,QESN.tikh_q,'Seed:',j+1)
+        print('Quantum Hyperparameters:',QESN.rho_q, QESN.epsilon_q,QESN.sigma_in_q,QESN.tikh_q,'Seed:',j+1)
 
-        # to store prediction horizon in the test set
-        PH         = np.zeros(N_test)
-        PH_q       = np.zeros(N_test)
-        # to plot results
+    #print(Wout)
+    #print('W',W)
 
-        if plot:
-            plt.rcParams["figure.figsize"] = (15,3*n_plot)
-            plt.figure()
-            plt.tight_layout(h_pad=12)
+    # to store prediction horizon in the test set
+    PH         = np.zeros(N_test)
+    PH_q       = np.zeros(N_test)
+    # to plot results
 
-        #run different test intervals
-        for i in range(N_test):
+    Uh_wash_q = []
+    Yh_t_q = []
 
-            # data for washout and target in each interval
-            U_wash    = U_test[num_series,N_tstart - N_washout +i*N_fwd : N_tstart + i*N_fwd].copy()
-            Y_t       = U_test[num_series,N_tstart  +i*N_fwd           : N_tstart + i*N_fwd + N_intt].copy()
+    if plot:
+        plt.rcParams["figure.figsize"] = (15,3*n_plot)
+        plt.figure()
+        plt.tight_layout(h_pad=12)
 
-            #washout for each interval
-            Xa1     = esn.open_loop(U_wash, np.zeros(esn.N_units),Win,W)
-            Uh_wash = np.dot(Xa1, Wout)
+    #run different test intervals
+    for i in range(N_test):
 
-            # Prediction Horizon
-            Yh_t        = esn.closed_loop(N_intt-1, Xa1[-1], Wout,Win,W)[0]
-            Y_err       = np.sqrt(np.mean((Y_t-Yh_t)**2,axis=1))/sigma_ph
-            PH[i]       = np.argmax(Y_err>threshold_ph)/N_lyap
-            if PH[i] == 0 and Y_err[0]<threshold_ph:
-                PH[i] = N_intt/N_lyap #(in case PH is larger than interval)
+        # data for washout and target in each interval
+        U_wash    = U_test[num_series,N_tstart - N_washout +i*N_fwd : N_tstart + i*N_fwd].copy()
+        Y_t       = U_test[num_series,N_tstart  +i*N_fwd           : N_tstart + i*N_fwd + N_intt].copy()
 
+        #washout for each interval
+        Xa1     = esn.open_loop(U_wash, np.zeros(esn.N_units),Win,W)
+        #Xa1     = open_loop(U_wash, np.zeros(N_units), Re_wash, sigma_in, rho)
+        Uh_wash = np.dot(Xa1, Wout)
 
-            if quantum:
-                #washout for each interval
-                Xa1_q   = QESN.quantum_openloop(U_wash, np.zeros(QESN.N_units),alpha) # here concatenation and bias out addition
-
-                Uh_wash_q = np.dot(Xa1_q, Wout_q)
-
-                # Prediction Horizon
-                Yh_t_q        = QESN.quantum_closedloop(N_intt-1, Xa1_q[-1], Wout_q,alpha)[0]
-                Y_err_q       = np.sqrt(np.mean((Y_t-Yh_t_q)**2,axis=1))/sigma_ph
-                PH_q[i]       = np.argmax(Y_err_q>threshold_ph)/N_lyap
-                if PH_q[i] == 0 and Y_err_q[0]<threshold_ph:
-                    PH_q[i] = N_intt/N_lyap #(in case PH is larger than interval)
+        # Prediction Horizon
+        Yh_t        = esn.closed_loop(N_intt-1, Xa1[-1], Wout,Win,W)[0]
 
 
-            if plot:
-                #left column has the washout (open-loop) and right column the prediction (closed-loop)
-                # only first n_plot test set intervals are plotted
-                if i<n_plot:
-                    plt.subplot(n_plot,2,1+i*2)
-                    xx = np.arange(U_wash[:,0].shape[0])/N_lyap
+        kin         = 0.5*np.linalg.norm(Y_t,axis=1)**2
+        kin_wash    = 0.5*np.linalg.norm(Uh_wash,axis=1)**2
 
-                    plt.plot(xx,U_wash[:U_wash.shape[0],i], 'k',label='True')
-                    plt.plot(xx,Uh_wash[:U_wash.shape[0],i], '--r',label='ESN')
-                    if quantum:
-                        plt.plot(xx,Uh_wash_q[:U_wash.shape[0],i], '--b',label='QESN')
+        kinh        = 0.5*np.linalg.norm(Yh_t,axis=1)**2
 
-                    plt.xlabel('Time[Lyapunov Times]')
-                    plt.ylabel('$x$'+str(i+1))
-                    if i==0:
-                        plt.legend(ncol=2)
-                        plt.title('Washout Phase')
+        Y_err      = np.sqrt(((kin - kinh)**2))/(0.1-k_mean)
 
-                    plt.subplot(n_plot,2,2+i*2)
-                    plt.axvline(PH[i])
-                    xx = np.arange(Y_t[:,0].shape[0])/N_lyap
-                    plt.plot(xx,Y_t[:,i], 'k')
-                    plt.plot(xx,Yh_t[:,i], '--r')
-                    if quantum:
-                        plt.plot(xx,Yh_t_q[:,i], '--b',label='QESN')
-                    if i==0:
-                        plt.legend(ncol=2)
-                        plt.title('Testing Phase')
-
-                    plt.xlabel('Time [Lyapunov Times]')
-
-        # Percentiles of the prediction horizon
-        PH_plot[j] = [np.quantile(PH,.75), np.median(PH), np.quantile(PH,.25)]
-        print('PH quantiles [Lyapunov Times]:',
-            PH_plot[j])
-        print('')
+        #Y_err       = np.sqrt(np.mean((kin - kinh)**2,axis=0))/sigma_ph
+        PH[i]       = np.argmax(Y_err>threshold_ph)/N_lyap
+        #if PH[i] == 0 and Y_err[0]<threshold_ph: PH[i] = N_intt/N_lyap #(in case PH is larger than interval)
 
         if quantum:
-            # Percentiles of the prediction horizon
-            PH_plot_q[j] = [np.quantile(PH_q,.75), np.median(PH_q), np.quantile(PH_q,.25)]
-            print('PH quantiles [Lyapunov Times]:',
-                PH_plot_q[j])
-            print('')
-        plt.show()
+            #washout for each interval
+            Xa1_q = QESN.quantum_openloop(U_wash, np.zeros(QESN.N_units),alpha)
+
+            Uh_wash_q = np.dot(Xa1_q, Wout_q)
+            #print(Xa1_q)
+
+            # Prediction Horizon
+            #Yh_t_q       = QESN.quantum_closedloop_conc(N_intt-1, Xa1_q[-1], Wout_q,alpha_qc,p)[0]
+            Yh_t_q        = QESN.quantum_closedloop(N_intt-1, Xa1_q[-1], Wout_q,alpha)[0]
+            kinh_q        = 0.5*np.linalg.norm(Yh_t_q,axis=1)**2
+
+            kinq_wash     = 0.5*np.linalg.norm(Uh_wash_q,axis=1)**2
+
+            Y_err_q       = np.sqrt(((kin - kinh_q)**2))/(0.1-k_mean)
+
+            #Y_err_q       = np.sqrt(np.mean((kin - kinh_q)**2,axis=0))/sigma_ph
+
+            PH_q[i]       = np.argmax(Y_err_q>threshold_ph)/N_lyap
+            #if PH_q[i] == 0 and Y_err_q[0]<threshold_ph: PH_q[i] = N_intt/N_lyap #(in case PH is larger than interval)
+
+        if plot:
+            #left column has the washout (open-loop) and right column the prediction (closed-loop)
+            # only first n_plot test set intervals are plotted
+            if i<n_plot:
+                plt.subplot(n_plot,2,1+i*2)
+                xx = np.arange(U_wash[:,0].shape[0])/N_lyap
+
+                plt.plot(xx,kin[:U_wash.shape[0]], 'k',label='True')
+                plt.plot(xx,kin_wash[:U_wash.shape[0]], '--r',label='ESN')
+
+                if quantum:
+                    plt.plot(xx,kinq_wash[:U_wash.shape[0]], '--b',label='QESN')
+
+                plt.xlabel('Time[Lyapunov Times]')
+                plt.ylabel('$x$'+str(i+1))
+
+                if i==0:
+                    plt.legend(ncol=2)
+                    plt.title('Washout Phase')
+
+                plt.subplot(n_plot,2,2+i*2)
+                xx = np.arange(Y_t[:,0].shape[0])/N_lyap
+                plt.plot(xx,kin, 'k')
+                plt.plot(xx,kinh, '--r')
+                if quantum:
+                    plt.plot(xx,kinh_q, '--b')
+
+                if i==0:
+                    plt.legend(ncol=2)
+                    plt.title('Testing Phase')
+                plt.ylim([0,0.2])
+                plt.xlabel('Time [Lyapunov Times]')
+
+    # Percentiles of the prediction horizon
+    PH_plot[j] = [np.quantile(PH,.75), np.median(PH), np.quantile(PH,.25)]
+    print('PH quantiles [Lyapunov Times]:',
+        PH_plot[j])
+    print('')
+
+    if quantum:
+        # Percentiles of the prediction horizon
+        PH_plot_q[j] = [np.quantile(PH_q,.75), np.median(PH_q), np.quantile(PH_q,.25)]
+        print('PH quantiles [Lyapunov Times]:',
+            PH_plot_q[j])
+        print('')
+
+    plt.show()
 
     return U_wash, Uh_wash, Y_t , Yh_t , PH_plot , Uh_wash_q, Yh_t_q , PH_plot_q
