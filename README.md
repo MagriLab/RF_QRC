@@ -1,15 +1,15 @@
 # RF_QRC
 
-This repository provides a framework for predicting chaotic dynamics and extreme events with **Quantum Reservoir Computing (QRC)** and introduces **Recurrence-free Quantum reservoir computing (RF-QRC)** [1]. It includes tools for trainining, predicting and comparing Qiskit-based implementation QRC implementation with classical reservoir computers.
+This repository provides a framework for predicting chaotic dynamics and extreme events with **Quantum Reservoir Computing (QRC)** and introduces **Recurrence-free Quantum reservoir computing (RF-QRC)** [1]. It include tools for trainining, predicting and comparing Qiskit-based QRC implementation with classical reservoir computers.
 
 
 ## Repository Structure
 
 - **`src/Notebook.ipynb`**
-  Contains the main workflow to train and predict with quantum reservoir computers. Input data can be modified to extend the framework to other systems such as **Lorenz96** or **MFE** for which the solvers are already added. Quantum noise models and the number of measurement **shots** can also be varied.
+  Contains the main workflow to train and predict with quantum reservoir computers. Input data can be modified to extend the framework to other systems such as **Lorenz96** or **MFE** for which the solvers are already added.
 
 - **`src/QRC/qrc.py`**
-  Implements the **Qiskit-based quantum reservoir** and the methods required to train in the open-loop and predict in closed-loop using quantum circuit simulations.
+  Implements the **Qiskit-based quantum reservoir** and the methods required to train it in the open-loop and predict in closed-loop using quantum circuit simulations.
 
 - **`src/QRC/crc.py`**
   Implements the classical reservoir computing or Echo State Network (ESN).
